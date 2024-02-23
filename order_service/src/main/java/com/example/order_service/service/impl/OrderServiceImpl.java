@@ -33,15 +33,15 @@ public class OrderServiceImpl implements OrderService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
-    public Order makeOrder(Long userId, Long itemId, Long quantity) {
+    public Order makeOrder(Long userId, Long itemId) {
         String key = getOrderRedisKey(userId, itemId);
-        redisTemplate.opsForHash().putAll(key, createOrderHash(userId, itemId, quantity));
+        redisTemplate.opsForHash().putAll(key, createOrderHash(userId, itemId, 1L));
         redisTemplate.expire(key, 10, TimeUnit.MINUTES);
         OrderUser orderUser = getOrderUser(userId);
         OrderItem orderItem = getOrderItem(itemId);
         checkTime(orderItem.getStart_time(), orderItem.getEnd_time());
-        Long totalPrice = (long)quantity*orderItem.getPrice();
-        Order order = Order.toDto(orderUser,orderItem,quantity,totalPrice);
+        Long totalPrice = (long)orderItem.getPrice();
+        Order order = Order.toDto(orderUser,orderItem,1L,totalPrice);
         return order;
     }
 
@@ -136,23 +136,6 @@ public class OrderServiceImpl implements OrderService {
 
     public void updateStock(Long itemId) {
 
-        try {
-            redisTemplate.watch(getItemRedisKey(itemId));
-            redisTemplate.multi();
-
-            Object stockObject = redisTemplate.opsForHash().get("SalesItem", getItemRedisKey(itemId));
-            Long stock = Long.valueOf((String) stockObject);
-            if (stock <= 0L) {
-                throw new CustomException(ErrorCode.NO_SUCH_ORDER);
-            }
-
-            HashOperations<String, Object, Object> hashOperations = redisTemplate.opsForHash();
-            hashOperations.putAll("SalesItem", getRedisHash(itemId, stock-1));
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        } finally {
-            redisTemplate.unwatch();
-        }
     }
 
     public Map<String, Object> getRedisHash(Long itemId, Long stock) {
