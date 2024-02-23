@@ -99,7 +99,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     public void saveOrder(Order order, Long userId, Long itemId) {
-        orderRepository.save(OrderEntity.toEntity(userId, itemId, order.getQuantity(), order.getTotalPrice()));
+        orderRepository.save(OrderEntity.toEntity(userId, itemId, order.getTotalPrice()));
     }
 
     public Boolean checkTime(Timestamp startTime, Timestamp endTime) {

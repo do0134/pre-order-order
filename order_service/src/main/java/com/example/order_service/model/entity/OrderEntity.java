@@ -27,7 +27,7 @@ public class OrderEntity {
     private Long itemId;
 
     @Column(name = "quantity")
-    private Long quantity;
+    private Long quantity = 1L;
 
     @Column(name = "total_price")
     private Long totalPrice;
@@ -55,11 +55,10 @@ public class OrderEntity {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 
-    public static OrderEntity toEntity(Long userId, Long itemId, Long quantity, Long totalPrice) {
+    public static OrderEntity toEntity(Long userId, Long itemId, Long totalPrice) {
         OrderEntity order = new OrderEntity();
         order.setUserId(userId);
         order.setItemId(itemId);
-        order.setQuantity(quantity);
         order.setTotalPrice(totalPrice);
         return order;
     }
