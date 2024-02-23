@@ -6,14 +6,13 @@ import lombok.Data;
 public class Order {
     private OrderUser orderUser;
     private OrderItem orderItem;
-    private Long quantity;
+    private Long quantity = 1L;
     private Long totalPrice;
 
     public static Order toDto(OrderUser orderUser, OrderItem orderItem, Long quantity, Long totalPrice) {
         Order order = new Order();
         order.setOrderUser(orderUser);
         order.setOrderItem(orderItem);
-        order.setQuantity(quantity);
         order.setTotalPrice(totalPrice);
         return order;
     }
