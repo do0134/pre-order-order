@@ -40,11 +40,13 @@ public class HeartBeatServiceImpl implements HeartBeatService {
 
     @Scheduled(fixedRate = 5000)
     private void sendHeartBeat(Long userId, Long salesItemId) {
+        boolean currentHeartbeatAlive = heartbeatAlive.get(); // 현재 heartbeatAlive 값 저장
         if (!heartbeatAlive.get()) {
             stockService.remove(UsedStock.toDto(userId, salesItemId));
             closeHeartBeat(userId, salesItemId);
             return;
         }
+
         heartbeatAlive.set(false);
         redisTemplate.convertAndSend(getChannel(userId, salesItemId), "alive");
     }
@@ -54,6 +56,7 @@ public class HeartBeatServiceImpl implements HeartBeatService {
     public void closeHeartBeat(Long userId, Long salesItemId) {
         redisMessageListenerContainer.removeMessageListener((message, pattern) ->
                 {}, new ChannelTopic(getChannel(userId, salesItemId)));
+        log.info("pub/sub server closed");
     }
 
     private String getChannel(Long userId, Long salesItemId) {

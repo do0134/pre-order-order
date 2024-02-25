@@ -37,7 +37,7 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
     runtimeOnly 'com.mysql:mysql-connector-j'
 }
 
