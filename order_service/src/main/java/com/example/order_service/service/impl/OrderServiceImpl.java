@@ -98,16 +98,16 @@ public class OrderServiceImpl implements OrderService {
         updateStock(itemId);
     }
 
-    public void saveOrder(Order order, Long userId, Long itemId) {
+    private void saveOrder(Order order, Long userId, Long itemId) {
         orderRepository.save(OrderEntity.toEntity(userId, itemId, order.getTotalPrice()));
     }
 
-    public Boolean checkTime(Timestamp startTime, Timestamp endTime) {
+    private Boolean checkTime(Timestamp startTime, Timestamp endTime) {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         return now.after(startTime) && now.before(endTime);
     }
 
-    public OrderUser getOrderUser(Long userId) {
+    private OrderUser getOrderUser(Long userId) {
         Response<OrderUser> orderUser = userFeignClient.getUser(userId);
         if (!orderUser.getResultCode().equals("SUCCESS")) {
             throw new CustomException(ErrorCode.USER_NOT_FOUND);
@@ -116,7 +116,7 @@ public class OrderServiceImpl implements OrderService {
         return orderUser.getResult();
     }
 
-    public OrderItem getOrderItem(Long itemId) {
+    private OrderItem getOrderItem(Long itemId) {
         Response<OrderItem> orderItem = itemFeignClient.getOrderItem(itemId);
 
         if (!orderItem.getResultCode().equals("SUCCESS")) {
@@ -126,26 +126,26 @@ public class OrderServiceImpl implements OrderService {
         return orderItem.getResult();
     }
 
-    public String getOrderRedisKey(Long userId, Long itemId) {
+    private String getOrderRedisKey(Long userId, Long itemId) {
         return String.format("user%s" + "order"+"item%s",userId, itemId);
     }
 
-    public String getItemRedisKey(Long itemId) {
+    private String getItemRedisKey(Long itemId) {
         return "SalesItem:" + String.valueOf(itemId);
     }
 
-    public void updateStock(Long itemId) {
+    private void updateStock(Long itemId) {
 
     }
 
-    public Map<String, Object> getRedisHash(Long itemId, Long stock) {
+    private Map<String, Object> getRedisHash(Long itemId, Long stock) {
         String key = getItemRedisKey(itemId);
         Map<String, Object> map = new HashMap<>();
         map.put(key, String.valueOf(stock));
         return map;
     }
 
-    public Map<String, Object> createOrderHash(Long userId, Long itemId, Long quantity) {
+    private Map<String, Object> createOrderHash(Long userId, Long itemId, Long quantity) {
         Map<String, Object> map = new HashMap<>();
         map.put("userId", String.valueOf(userId));
         map.put("itemId", String.valueOf(itemId));
@@ -153,7 +153,7 @@ public class OrderServiceImpl implements OrderService {
         return map;
     }
 
-    public void deleteRedisKey(String key) {
+    private void deleteRedisKey(String key) {
         redisTemplate.delete(key);
     }
 }

@@ -9,7 +9,7 @@ public class UsedStock {
     private Long userId;
     private Long salesItemId;
 
-    public static UsedStock convertFromRequest(Long userId, Long salesItemId) {
+    public static UsedStock toDto(Long userId, Long salesItemId) {
         UsedStock usedStock = new UsedStock();
         usedStock.setUserId(userId);
         usedStock.setSalesItemId(salesItemId);

@@ -1,7 +1,7 @@
 package com.example.order_service.service;
 
 public interface HeartBeatService {
-    void sendHeartBeat();
-    void checkHeartBeat();
-    void closeHeartBeat();
+    void subscribeHeartbeat(Long userId, Long salesItemId);
+
+    void closeHeartBeat(Long userId, Long salesItemId);
 }
