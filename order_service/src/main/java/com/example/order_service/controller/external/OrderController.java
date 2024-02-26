@@ -17,7 +17,7 @@ public class OrderController {
 
     @PostMapping("/{userId}/{itemId}")
     public Response<Order> createOrder(@PathVariable("userId") Long userId, @PathVariable("itemId") Long itemId) {
-        Order order = orderService.makeOrder(userId, itemId);
+        Order order = orderService.createOrder(userId, itemId);
         return Response.success(order);
     }
 

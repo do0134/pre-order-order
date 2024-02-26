@@ -11,4 +11,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public interface ItemFeignClient {
     @RequestMapping(method = RequestMethod.GET,value = "/order/{itemId}")
     Response<OrderItem> getOrderItem(@PathVariable("itemId") Long itemId);
+
+    @RequestMapping(method =  RequestMethod.GET, value = "/stock/{itemId}")
+    Response<Void> getStock(@PathVariable("itemId") Long itemId);
+
+    @RequestMapping(method = RequestMethod.PUT, value = "/order/{itemId}")
+    Response<Void> updateStock(@PathVariable("itemId") Long itemId);
 }
