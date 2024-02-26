@@ -35,8 +35,6 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order makeOrder(Long userId, Long itemId) {
         String key = getOrderRedisKey(userId, itemId);
-        redisTemplate.opsForHash().putAll(key, createOrderHash(userId, itemId, 1L));
-        redisTemplate.expire(key, 10, TimeUnit.MINUTES);
         OrderUser orderUser = getOrderUser(userId);
         OrderItem orderItem = getOrderItem(itemId);
         checkTime(orderItem.getStart_time(), orderItem.getEnd_time());
@@ -44,14 +42,14 @@ public class OrderServiceImpl implements OrderService {
         Order order = Order.toDto(orderUser,orderItem,1L,totalPrice);
         return order;
     }
-
+    @Transactional
     public Order createOrder(Long userId, Long itemId) {
         String key = getOrderRedisKey(userId, itemId);
         Map<Object, Object> map = redisTemplate.opsForHash().entries(key);
         if (map.isEmpty()) {
             throw new CustomException(ErrorCode.NO_SUCH_ORDER);
         }
-
+        OrderEntity orderEntity = OrderEntity.toEntity(userId, itemId, 1L);
         Long quantity = Long.valueOf((String) map.get("quantity"));
         OrderUser orderUser = getOrderUser(userId);
         OrderItem orderItem = getOrderItem(itemId);
