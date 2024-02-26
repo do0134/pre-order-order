@@ -14,9 +14,10 @@ def redis_test():
     for message in p.listen():
         if message['type'] == 'message':
             m = message['data'].decode('utf-8')
+            print(m)
             print("Received heartbeat:", m)
 
-            if m == "alive":
+            if m == "User 1 order Item 1":
                 r.publish('User 1 order Item 1', "alive")
                 cnt += 1
                 print(f"Send {cnt}th data:", "alive")

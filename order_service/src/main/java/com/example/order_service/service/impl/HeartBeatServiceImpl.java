@@ -8,9 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
@@ -23,32 +27,37 @@ public class HeartBeatServiceImpl implements HeartBeatService {
     private final RedisMessageListenerContainer redisMessageListenerContainer;
     private final AtomicBoolean heartbeatAlive = new AtomicBoolean(true);
 
+    private final TaskScheduler taskScheduler;
+    private final ConcurrentHashMap<String, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
+
     private final String aliveResponse = "alive";
 
     @Override
     public void subscribeHeartbeat(Long userId, Long salesItemId) {
+        String key = getChannel(userId, salesItemId);
+
         redisMessageListenerContainer.addMessageListener((message, pattern) -> {
             if (aliveResponse.equals(message.toString())) {
+                System.out.println(message.toString() + "22222222222");
                 heartbeatAlive.set(true);
             }
-
         }, new ChannelTopic(getChannel(userId, salesItemId))
         );
 
-        sendHeartBeat(userId, salesItemId);
+        ScheduledFuture<?> scheduledTask = taskScheduler.schedule(() -> sendHeartBeat(userId, salesItemId), new CronTrigger("*/5 * * * * *"));
+        scheduledTasks.put(key, scheduledTask);
     }
 
-    @Scheduled(fixedRate = 5000)
     private void sendHeartBeat(Long userId, Long salesItemId) {
-        boolean currentHeartbeatAlive = heartbeatAlive.get(); // 현재 heartbeatAlive 값 저장
         if (!heartbeatAlive.get()) {
             stockService.remove(UsedStock.toDto(userId, salesItemId));
+            scheduledTasks.get(getChannel(userId, salesItemId)).cancel(false);
             closeHeartBeat(userId, salesItemId);
             return;
         }
 
         heartbeatAlive.set(false);
-        redisTemplate.convertAndSend(getChannel(userId, salesItemId), "alive");
+        redisTemplate.convertAndSend(getChannel(userId, salesItemId), getChannel(userId, salesItemId));
     }
 
 

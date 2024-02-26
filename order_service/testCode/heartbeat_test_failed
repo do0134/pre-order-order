@@ -1,5 +1,6 @@
 import requests
 import redis
+import time
 
 
 def redis_test():
@@ -13,15 +14,16 @@ def redis_test():
 
     for message in p.listen():
         if message['type'] == 'message':
+            
             m = message['data'].decode('utf-8')
             print("Received heartbeat:", m)
             if cnt == 5:
                 break
-
-            if m == "alive":
+            time.sleep(6)
+            if m == "User 1 order Item 1":
                 r.publish('User 1 order Item 1', "alive")
-                cnt += 1
                 print(f"Send {cnt}th data:", "alive")
+            cnt += 1
             
 
     print(f"HeartBeat Count: {cnt}")
