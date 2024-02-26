@@ -10,6 +10,7 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User Not found"),
     NO_SUCH_ITEM(HttpStatus.BAD_REQUEST, "No such item"),
     NO_SUCH_ORDER(HttpStatus.BAD_REQUEST, "No such Order"),
+    LOW_QUANTITY(HttpStatus.BAD_REQUEST, "Quantity is insufficient"),
     INVALID_TIME(HttpStatus.BAD_REQUEST, "Cannot access item now");
 
     private final HttpStatus status;
