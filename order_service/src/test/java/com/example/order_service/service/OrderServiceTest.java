@@ -2,15 +2,20 @@ package com.example.order_service.service;
 
 import com.example.order_service.model.dto.Order;
 
+import com.example.order_service.model.dto.OrderItem;
+import com.example.order_service.model.dto.OrderUser;
+import com.example.order_service.utils.Response;
 import com.example.order_service.utils.error.CustomException;
+import com.example.order_service.utils.redis.RedisConfig;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
 
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -19,16 +24,21 @@ import static org.mockito.ArgumentMatchers.*;
 public class OrderServiceTest {
 
 
-//    @MockBean
-//    private RedisConfig redisConfig;
-//
-    @MockBean
+    @Autowired
+    private RedisConfig redisConfig;
+
+    @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    @MockBean
+    @Autowired
     private OrderService orderService;
-//
-//    private static String key = "UsedStock";
+
+    @MockBean
+    private ItemFeignClient itemFeignClient;
+
+    @MockBean
+    private UserFeignClient userFeignClient;
+
 
     @Test
     void 주문_성공() {
@@ -37,17 +47,19 @@ public class OrderServiceTest {
         Long userId = 1L;
         Long itemId = 1L;
 
+        OrderUser orderUser = new OrderUser();
+        OrderItem orderItem = new OrderItem();
 
-        // Redis에 order가 있다고 하고(Mock하고)
-        Mockito.when(redisTemplate.opsForSet().isMember("UsedStock" + itemId, getRedisKey(userId, itemId))).thenReturn(true);
-        // StockService의 remove는 했다 치고
-//        Mockito.doNothing().when(stockService).remove(UsedStock.toDto(userId, itemId));
+        redisTemplate.opsForSet().add("UsedStock" + itemId, getRedisKey(userId, itemId));
+        Mockito.when(userFeignClient.getUser(anyLong())).thenReturn(Response.success(orderUser));
+        Mockito.when(itemFeignClient.getOrderItem(anyLong())).thenReturn(Response.success(orderItem));
 
+        // then
         Order order = orderService.createOrder(userId, itemId);
 
-        System.out.println(order);
-
         assertNotNull(order);
+
+        redisTemplate.opsForSet().remove("UsedStock" + itemId, getRedisKey(userId, itemId));
     }
 
     @Test
@@ -55,13 +67,6 @@ public class OrderServiceTest {
         Long userId = 1L;
         Long itemId = 1L;
 
-        Map<Object, Boolean> resultMap = new HashMap<>();
-        resultMap.put("key" + itemId, false);
-
-        RedisTemplate<String, Object> redisTemplate = Mockito.mock(RedisTemplate.class);
-        
-        Mockito.when(redisTemplate.opsForSet().isMember(any(), any())).thenReturn(resultMap);
-        
         assertThrows(CustomException.class, () -> orderService.createOrder(userId, itemId));
     }
 
