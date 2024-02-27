@@ -1,9 +1,6 @@
 package com.example.order_service.service.impl;
 
-import com.example.order_service.model.dto.Order;
-import com.example.order_service.model.dto.OrderItem;
-import com.example.order_service.model.dto.OrderUser;
-import com.example.order_service.model.dto.UsedStock;
+import com.example.order_service.model.dto.*;
 import com.example.order_service.model.entity.OrderEntity;
 import com.example.order_service.repository.OrderRepository;
 import com.example.order_service.service.*;
@@ -12,7 +9,6 @@ import com.example.order_service.utils.error.CustomException;
 import com.example.order_service.utils.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +31,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order createOrderCache(Long userId, Long salesItemId) {
+        checkStock(userId, salesItemId);
+
         heartBeatService.subscribeHeartbeat(userId, salesItemId);
 
         OrderItem orderItem = getOrderItem(salesItemId);
@@ -78,9 +76,18 @@ public class OrderServiceImpl implements OrderService {
     public Order pay(Long userId, Long itemId) {
         stockService.searchOrderCache(userId, itemId);
         Order order = createOrder(userId, itemId);
+        itemFeignClient.updateStock(itemId);
         stockService.remove(UsedStock.toDto(userId, itemId));
         heartBeatService.closeHeartBeat(userId, itemId);
         return order;
+    }
+
+    private void checkStock(Long userId, Long salesItemId) {
+        Long stock = itemFeignClient.getStock(salesItemId).getResult().getStock();
+
+        if (stockService.totalUsedCount(UsedStock.toDto(userId, salesItemId)) >= stock) {
+            throw new CustomException(ErrorCode.LOW_QUANTITY);
+        }
     }
 
     private Order createOrder(Long userId, Long itemId) {
@@ -123,5 +130,4 @@ public class OrderServiceImpl implements OrderService {
 
         return orderItem.getResult();
     }
-
 }

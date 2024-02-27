@@ -18,10 +18,6 @@ public class StockServiceImpl implements StockService {
     private final String key = "UsedStock";
     @Override
     public void add(UsedStock usedStock) {
-        if (totalUsedCount(usedStock) < 0) {
-            throw new CustomException(ErrorCode.LOW_QUANTITY);
-        }
-
         redisTemplate.opsForSet().add(key+usedStock.getSalesItemId(), getKey(usedStock.getUserId(), usedStock.getSalesItemId()));
         log.info(String.format("User %s used stock item %s", usedStock.getUserId(), usedStock.getSalesItemId()));
     }
