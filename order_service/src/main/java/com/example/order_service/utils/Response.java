@@ -2,9 +2,11 @@ package com.example.order_service.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class Response <T>{
     private String resultCode;
     private T result;
@@ -20,6 +22,7 @@ public class Response <T>{
     public static Response<String> error(String resultCode, String result) {
         return new Response<>(resultCode, result);
     }
+
 
     public String toStream() {
         if (result == null) {

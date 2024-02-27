@@ -12,7 +12,10 @@ import java.time.Instant;
 @Entity
 @Getter
 @Setter
-@Table(name = "\"order\"")
+@Table(name = "\"order\"", indexes = {
+        @Index(name = "user_id_index", columnList = "user_id"),
+        @Index(name = "item_id_index", columnList = "item_id")
+})
 @SQLDelete(sql = "UPDATE \"order\" SET is_deleted = true, deleted_at = NOW() WHERE id = ?")
 @Where(clause = "is_deleted = False")
 public class OrderEntity {
@@ -30,7 +33,7 @@ public class OrderEntity {
     private Long quantity = 1L;
 
     @Column(name = "total_price")
-    private Long totalPrice;
+    private Long totalPrice = 1000L;
 
     @Column(name = "created_at")
     private Timestamp createdAt;
@@ -55,11 +58,10 @@ public class OrderEntity {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 
-    public static OrderEntity toEntity(Long userId, Long itemId, Long totalPrice) {
+    public static OrderEntity toEntity(Long userId, Long itemId) {
         OrderEntity order = new OrderEntity();
         order.setUserId(userId);
         order.setItemId(itemId);
-        order.setTotalPrice(totalPrice);
         return order;
     }
 }

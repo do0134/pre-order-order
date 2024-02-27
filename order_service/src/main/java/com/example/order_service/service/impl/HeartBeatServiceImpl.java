@@ -3,6 +3,8 @@ package com.example.order_service.service.impl;
 import com.example.order_service.model.dto.UsedStock;
 import com.example.order_service.service.HeartBeatService;
 import com.example.order_service.service.StockService;
+import com.example.order_service.utils.error.CustomException;
+import com.example.order_service.utils.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -37,13 +39,15 @@ public class HeartBeatServiceImpl implements HeartBeatService {
 
         redisMessageListenerContainer.addMessageListener((message, pattern) -> {
             if (aliveResponse.equals(message.toString())) {
-                System.out.println(message.toString() + "22222222222");
                 heartbeatAlive.set(true);
             }
         }, new ChannelTopic(getChannel(userId, salesItemId))
         );
 
         ScheduledFuture<?> scheduledTask = taskScheduler.schedule(() -> sendHeartBeat(userId, salesItemId), new CronTrigger("*/5 * * * * *"));
+        if (scheduledTask == null) {
+            throw new CustomException(ErrorCode.INTERNAL_ERROR, "스케줄 task가 비었습니다.");
+        }
         scheduledTasks.put(key, scheduledTask);
     }
 
