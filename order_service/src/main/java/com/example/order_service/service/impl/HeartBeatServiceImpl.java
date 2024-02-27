@@ -43,6 +43,7 @@ public class HeartBeatServiceImpl implements HeartBeatService {
         );
 
         ScheduledFuture<?> scheduledTask = taskScheduler.schedule(() -> sendHeartBeat(userId, salesItemId), new CronTrigger("*/5 * * * * *"));
+        assert scheduledTask != null;
         scheduledTasks.put(key, scheduledTask);
     }
 
