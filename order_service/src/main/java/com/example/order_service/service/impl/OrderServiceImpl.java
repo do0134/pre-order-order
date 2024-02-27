@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -33,13 +34,14 @@ public class OrderServiceImpl implements OrderService {
     public Order createOrderCache(Long userId, Long salesItemId) {
         checkStock(userId, salesItemId);
 
-        heartBeatService.subscribeHeartbeat(userId, salesItemId);
-
         OrderItem orderItem = getOrderItem(salesItemId);
         checkTime(orderItem.getStart_time(), orderItem.getEnd_time());
+
         OrderUser orderUser = getOrderUser(userId);
 
         Order order = Order.toDto(orderUser,orderItem);
+
+        heartBeatService.subscribeHeartbeat(userId, salesItemId);
         stockService.add(UsedStock.toDto(userId, salesItemId));
 
         return order;
@@ -74,6 +76,13 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public Order pay(Long userId, Long itemId) {
+        Random random = new Random();
+        int fail = random.nextInt(100);
+
+        if (fail <= 20) {
+            throw new CustomException(ErrorCode.INTERNAL_ERROR);
+        }
+
         stockService.searchOrderCache(userId, itemId);
         Order order = createOrder(userId, itemId);
         itemFeignClient.updateStock(itemId);
@@ -83,8 +92,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void checkStock(Long userId, Long salesItemId) {
-        Long stock = itemFeignClient.getStock(salesItemId).getResult().getStock();
-
+        Response<Stock> monoStock = itemFeignClient.getStock(salesItemId);
+        Long stock = monoStock.getResult().getStock();
         if (stockService.totalUsedCount(UsedStock.toDto(userId, salesItemId)) >= stock) {
             throw new CustomException(ErrorCode.LOW_QUANTITY);
         }
