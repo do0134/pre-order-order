@@ -6,15 +6,14 @@ import com.example.order_service.model.dto.OrderItem;
 import com.example.order_service.model.dto.OrderUser;
 import com.example.order_service.utils.Response;
 import com.example.order_service.utils.error.CustomException;
-import com.example.order_service.utils.redis.RedisConfig;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
+
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SetOperations;
+
 
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,9 +22,6 @@ import static org.mockito.ArgumentMatchers.*;
 @SpringBootTest
 public class OrderServiceTest {
 
-
-    @Autowired
-    private RedisConfig redisConfig;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -55,7 +51,7 @@ public class OrderServiceTest {
         Mockito.when(itemFeignClient.getOrderItem(anyLong())).thenReturn(Response.success(orderItem));
 
         // then
-        Order order = orderService.createOrder(userId, itemId);
+        Order order = orderService.pay(userId, itemId);
 
         assertNotNull(order);
 
@@ -67,7 +63,7 @@ public class OrderServiceTest {
         Long userId = 1L;
         Long itemId = 1L;
 
-        assertThrows(CustomException.class, () -> orderService.createOrder(userId, itemId));
+        assertThrows(CustomException.class, () -> orderService.pay(userId, itemId));
     }
 
     private String getRedisKey(Long userId, Long salesItemId) {

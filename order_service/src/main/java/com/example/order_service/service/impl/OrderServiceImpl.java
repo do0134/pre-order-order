@@ -12,7 +12,6 @@ import com.example.order_service.utils.error.CustomException;
 import com.example.order_service.utils.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -34,25 +32,18 @@ public class OrderServiceImpl implements OrderService {
     private final StockService stockService;
     private final HeartBeatService heartBeatService;
 
-    private final RedisTemplate<String, Object> redisTemplate;
-    private final static String key = "UsedStock";
 
     @Override
-    @Transactional
-    public Order createOrder(Long userId, Long itemId) {
-        Boolean isOrderExist = redisTemplate.opsForSet().isMember(key + itemId, getRedisKey(userId,itemId));
+    public Order createOrderCache(Long userId, Long salesItemId) {
+        heartBeatService.subscribeHeartbeat(userId, salesItemId);
 
-        if (Boolean.FALSE.equals(isOrderExist)) {
-            throw new CustomException(ErrorCode.NO_SUCH_ORDER);
-        }
-
+        OrderItem orderItem = getOrderItem(salesItemId);
+        checkTime(orderItem.getStart_time(), orderItem.getEnd_time());
         OrderUser orderUser = getOrderUser(userId);
-        OrderItem orderItem = getOrderItem(itemId);
 
         Order order = Order.toDto(orderUser,orderItem);
-        saveOrder(userId, itemId);
+        stockService.add(UsedStock.toDto(userId, salesItemId));
 
-        stockService.remove(UsedStock.toDto(userId, itemId));
         return order;
     }
 
@@ -83,22 +74,35 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-//    @Transactional
-    public void pay(Long userId, Long itemId) {
-//            Order order = createOrder(userId, itemId);
+    @Transactional
+    public Order pay(Long userId, Long itemId) {
+        stockService.searchOrderCache(userId, itemId);
+        Order order = createOrder(userId, itemId);
+        stockService.remove(UsedStock.toDto(userId, itemId));
+        heartBeatService.closeHeartBeat(userId, itemId);
+        return order;
+    }
 
-//            String orderKey = getOrderRedisKey(userId, itemId);
-//            deleteRedisKey(orderKey);
+    private Order createOrder(Long userId, Long itemId) {
+        OrderItem orderItem = getOrderItem(itemId);
+        checkTime(orderItem.getStart_time(), orderItem.getEnd_time());
+        OrderUser orderUser = getOrderUser(userId);
 
+        Order order = Order.toDto(orderUser,orderItem);
+        saveOrder(userId, itemId);
+
+        return order;
     }
 
     private void saveOrder(Long userId, Long itemId) {
         orderRepository.save(OrderEntity.toEntity(userId, itemId));
     }
 
-    private Boolean checkTime(Timestamp startTime, Timestamp endTime) {
+    private void checkTime(Timestamp startTime, Timestamp endTime) {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        return now.after(startTime) && now.before(endTime);
+        if(!(now.after(startTime) && now.before(endTime))){
+            throw new CustomException(ErrorCode.NOT_PURCHASABLE_TIME);
+        }
     }
 
     private OrderUser getOrderUser(Long userId) {
@@ -118,10 +122,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return orderItem.getResult();
-    }
-
-    private String getRedisKey(Long userId, Long salesItemId) {
-        return String.format("User %s used salesItem %s", userId, salesItemId);
     }
 
 }

@@ -37,7 +37,6 @@ public class HeartBeatServiceImpl implements HeartBeatService {
 
         redisMessageListenerContainer.addMessageListener((message, pattern) -> {
             if (aliveResponse.equals(message.toString())) {
-                System.out.println(message.toString() + "22222222222");
                 heartbeatAlive.set(true);
             }
         }, new ChannelTopic(getChannel(userId, salesItemId))

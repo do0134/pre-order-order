@@ -11,6 +11,7 @@ public enum ErrorCode {
     NO_SUCH_ITEM(HttpStatus.BAD_REQUEST, "No such item"),
     NO_SUCH_ORDER(HttpStatus.BAD_REQUEST, "No such Order"),
     LOW_QUANTITY(HttpStatus.BAD_REQUEST, "Quantity is insufficient"),
+    NOT_PURCHASABLE_TIME(HttpStatus.BAD_REQUEST, "Not Purchasable time"),
     INVALID_TIME(HttpStatus.BAD_REQUEST, "Cannot access item now");
 
     private final HttpStatus status;

@@ -37,6 +37,13 @@ public class StockServiceImpl implements StockService {
         return redisTemplate.opsForSet().size(key+usedStock.getSalesItemId());
     }
 
+    @Override
+    public void searchOrderCache(Long userId, Long salesItemId) {
+        if (Boolean.FALSE.equals(redisTemplate.opsForSet().isMember(key + salesItemId, getKey(userId, salesItemId)))) {
+            throw new CustomException(ErrorCode.NO_SUCH_ORDER);
+        }
+    }
+
     public String getKey(Long userId, Long salesItemId) {
         return String.format("User %s used salesItem %s", userId, salesItemId);
     }

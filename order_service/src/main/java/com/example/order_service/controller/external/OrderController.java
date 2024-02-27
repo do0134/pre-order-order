@@ -2,7 +2,6 @@ package com.example.order_service.controller.external;
 
 import com.example.order_service.utils.Response;
 import com.example.order_service.model.dto.Order;
-import com.example.order_service.model.dto.request.OrderRequest;
 import com.example.order_service.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +16,7 @@ public class OrderController {
 
     @PostMapping("/{userId}/{itemId}")
     public Response<Order> createOrder(@PathVariable("userId") Long userId, @PathVariable("itemId") Long itemId) {
-        Order order = orderService.createOrder(userId, itemId);
+        Order order = orderService.createOrderCache(userId, itemId);
         return Response.success(order);
     }
 
@@ -34,8 +33,8 @@ public class OrderController {
     }
 
     @PostMapping("/pay/{userId}/{itemId}")
-    public Response<Void> doPay(@PathVariable("userId") Long userId, @PathVariable("itemId") Long itemId) {
-        orderService.pay(userId, itemId);
-        return Response.success();
+    public Response<Order> doPay(@PathVariable("userId") Long userId, @PathVariable("itemId") Long itemId) {
+        Order order = orderService.pay(userId, itemId);
+        return Response.success(order);
     }
 }
