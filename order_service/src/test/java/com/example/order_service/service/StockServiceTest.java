@@ -14,9 +14,6 @@ public class StockServiceTest {
     @Autowired
     private StockService stockService;
 
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
-
     @Test
     void 재고_사용량_추가_및_제거() {
         UsedStock usedStock = UsedStock.toDto(1L, 1L);
