@@ -54,6 +54,7 @@ public class HeartBeatServiceImpl implements HeartBeatService {
     private void sendHeartBeat(Long userId, Long salesItemId) {
         if (!heartbeatAlive.get()) {
             stockService.remove(UsedStock.toDto(userId, salesItemId));
+            log.info(String.format("User %s cancel stock item %s", userId, salesItemId));
             scheduledTasks.get(getChannel(userId, salesItemId)).cancel(false);
             closeHeartBeat(userId, salesItemId);
             return;

@@ -25,7 +25,7 @@ public class StockServiceImpl implements StockService {
     @Override
     public void remove(UsedStock usedStock) {
         redisTemplate.opsForSet().remove(key+usedStock.getSalesItemId(), getKey(usedStock.getUserId(), usedStock.getSalesItemId()));
-        log.info(String.format("User %s cancel stock item %s", usedStock.getUserId(), usedStock.getSalesItemId()));
+
     }
 
     @Override
