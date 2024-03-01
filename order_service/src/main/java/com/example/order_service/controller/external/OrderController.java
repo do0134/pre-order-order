@@ -1,5 +1,6 @@
 package com.example.order_service.controller.external;
 
+import com.example.order_service.model.dto.response.OrderResponse;
 import com.example.order_service.utils.Response;
 import com.example.order_service.model.dto.Order;
 import com.example.order_service.service.OrderService;
@@ -15,9 +16,9 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/{userId}/{itemId}")
-    public Response<Order> createOrder(@PathVariable("userId") Long userId, @PathVariable("itemId") Long itemId) {
-        Order order = orderService.createOrderCache(userId, itemId);
-        return Response.success(order);
+    public Response<OrderResponse> createOrder(@PathVariable("userId") Long userId, @PathVariable("itemId") Long itemId) {
+        OrderResponse orderResponse = orderService.createOrderCache(userId, itemId);
+        return Response.success(orderResponse);
     }
 
     @GetMapping("/user/{userId}")
@@ -33,8 +34,8 @@ public class OrderController {
     }
 
     @PostMapping("/pay/{userId}/{itemId}")
-    public Response<Order> doPay(@PathVariable("userId") Long userId, @PathVariable("itemId") Long itemId) {
-        Order order = orderService.pay(userId, itemId);
-        return Response.success(order);
+    public Response<OrderResponse> doPay(@PathVariable("userId") Long userId, @PathVariable("itemId") Long itemId) {
+        OrderResponse orderResponse = orderService.pay(userId, itemId);
+        return Response.success(orderResponse);
     }
 }
