@@ -73,7 +73,7 @@ public class OrderServiceImpl implements OrderService {
         int fail = random.nextInt(100);
 
         if (fail <= 20) {
-            throw new CustomException(ErrorCode.INTERNAL_ERROR);
+            throw new CustomException(ErrorCode.RANDOM_FAIL);
         }
 
         stockService.searchOrderCache(userId, itemId);
@@ -81,6 +81,7 @@ public class OrderServiceImpl implements OrderService {
         itemFeignClient.updateStock(itemId);
         stockService.remove(UsedStock.toDto(userId, itemId));
         heartBeatService.closeHeartBeat(userId, itemId);
+        saveOrder(userId, itemId);
         return orderResponse;
     }
 
