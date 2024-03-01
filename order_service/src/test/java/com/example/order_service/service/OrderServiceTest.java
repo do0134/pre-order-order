@@ -1,9 +1,8 @@
 package com.example.order_service.service;
 
-import com.example.order_service.model.dto.Order;
-
 import com.example.order_service.model.dto.OrderItem;
 import com.example.order_service.model.dto.OrderUser;
+import com.example.order_service.model.dto.response.OrderResponse;
 import com.example.order_service.utils.Response;
 import com.example.order_service.utils.error.CustomException;
 import org.junit.jupiter.api.Test;
@@ -51,9 +50,9 @@ public class OrderServiceTest {
         Mockito.when(itemFeignClient.getOrderItem(anyLong())).thenReturn(Response.success(orderItem));
 
         // then
-        Order order = orderService.pay(userId, itemId);
+        OrderResponse orderResponse = orderService.pay(userId, itemId);
 
-        assertNotNull(order);
+        assertNotNull(orderResponse);
 
         redisTemplate.opsForSet().remove("UsedStock" + itemId, getRedisKey(userId, itemId));
     }

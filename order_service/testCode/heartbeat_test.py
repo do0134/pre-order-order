@@ -6,7 +6,7 @@ def redis_test():
     r = redis.Redis("localhost", 6379)
 
     p = r.pubsub()
-    p.subscribe("User 1 order Item 1")
+    p.subscribe("heartbeat")
     cnt = 0
     
     requests.post("http://localhost:8085/api/v1/heartbeat/1/1")

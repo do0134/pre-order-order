@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -19,13 +21,14 @@ public class StockServiceImpl implements StockService {
     @Override
     public void add(UsedStock usedStock) {
         redisTemplate.opsForSet().add(key+usedStock.getSalesItemId(), getKey(usedStock.getUserId(), usedStock.getSalesItemId()));
+        redisTemplate.expire(key+usedStock.getSalesItemId(), 120, TimeUnit.SECONDS);
         log.info(String.format("User %s used stock item %s", usedStock.getUserId(), usedStock.getSalesItemId()));
     }
 
     @Override
     public void remove(UsedStock usedStock) {
         redisTemplate.opsForSet().remove(key+usedStock.getSalesItemId(), getKey(usedStock.getUserId(), usedStock.getSalesItemId()));
-        log.info(String.format("User %s cancel stock item %s", usedStock.getUserId(), usedStock.getSalesItemId()));
+
     }
 
     @Override

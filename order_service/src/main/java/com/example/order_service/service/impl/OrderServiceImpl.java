@@ -1,6 +1,7 @@
 package com.example.order_service.service.impl;
 
 import com.example.order_service.model.dto.*;
+import com.example.order_service.model.dto.response.OrderResponse;
 import com.example.order_service.model.entity.OrderEntity;
 import com.example.order_service.repository.OrderRepository;
 import com.example.order_service.service.*;
@@ -11,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Mono;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -31,20 +31,13 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
-    public Order createOrderCache(Long userId, Long salesItemId) {
+    public OrderResponse createOrderCache(Long userId, Long salesItemId) {
         checkStock(userId, salesItemId);
-
-        OrderItem orderItem = getOrderItem(salesItemId);
-        checkTime(orderItem.getStart_time(), orderItem.getEnd_time());
-
-        OrderUser orderUser = getOrderUser(userId);
-
-        Order order = Order.toDto(orderUser,orderItem);
-
+        OrderResponse orderResponse = OrderResponse.toDto(userId, salesItemId);
         heartBeatService.subscribeHeartbeat(userId, salesItemId);
         stockService.add(UsedStock.toDto(userId, salesItemId));
 
-        return order;
+        return orderResponse;
     }
 
     @Override
@@ -75,20 +68,21 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Order pay(Long userId, Long itemId) {
+    public OrderResponse pay(Long userId, Long itemId) {
         Random random = new Random();
         int fail = random.nextInt(100);
 
         if (fail <= 20) {
-            throw new CustomException(ErrorCode.INTERNAL_ERROR);
+            throw new CustomException(ErrorCode.RANDOM_FAIL);
         }
 
         stockService.searchOrderCache(userId, itemId);
-        Order order = createOrder(userId, itemId);
+        OrderResponse orderResponse = OrderResponse.toDto(userId, itemId);
         itemFeignClient.updateStock(itemId);
         stockService.remove(UsedStock.toDto(userId, itemId));
         heartBeatService.closeHeartBeat(userId, itemId);
-        return order;
+        saveOrder(userId, itemId);
+        return orderResponse;
     }
 
     private void checkStock(Long userId, Long salesItemId) {
