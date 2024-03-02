@@ -17,7 +17,7 @@ public class GlobalControllerAdvice {
 
     @ExceptionHandler(RuntimeException.class)
     public Response<?> applicationHandler(RuntimeException e) {
-        log.error("Error occured {}", e.toString());
+        log.error("Internal Error occured {}", e.toString());
         return Response.error(HttpStatus.INTERNAL_SERVER_ERROR.toString(), e.getMessage());
     }
 }
