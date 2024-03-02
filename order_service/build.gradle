@@ -34,6 +34,10 @@ dependencies {
     // feign client
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.0.3'
 
+    // Resilience4j
+    implementation "io.github.resilience4j:resilience4j-retry:2.2.0"
+    implementation "io.github.resilience4j:resilience4j-circuitbreaker:2.2.0"
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
